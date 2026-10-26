@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile document",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 1024 },
+        "createdAt": { "type": "string" },
+        "lastLoginAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Income or expense record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "amount": { "type": "number" },
+        "category": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "maxLength": 32 },
+        "title": { "type": "string", "maxLength": 200 },
+        "note": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["id", "userId", "type", "amount", "category", "date", "title"]
+    },
+    "Budget": {
+      "title": "Budget",
+      "description": "User monthly budget configuration",
+      "type": "object",
+      "properties": {
+        "month": { "type": "string", "maxLength": 16 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "totalBudget": { "type": "number" },
+        "categoryBudgets": { "type": "object" }
+      },
+      "required": ["month", "userId", "totalBudget"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User private profile document"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Transactions belonging to the user"
+    },
+    "/users/{userId}/budget/{monthId}": {
+      "schema": { "$ref": "#/entities/Budget" },
+      "description": "Budget document for each month"
+    }
+  }
+}

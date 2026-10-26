@@ -1,0 +1,6 @@
+{
+  "name": "STUDENTS COINS - Quản Lý Chi Tiêu Sinh Viên",
+  "description": "Ứng dụng quản lý chi tiêu và tiết kiệm thông minh, dễ thương dành cho học sinh, sinh viên Việt Nam với bảng màu pastel và chú heo đất 3D.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
