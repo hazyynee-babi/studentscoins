@@ -141,7 +141,7 @@ export const LoginView: React.FC = () => {
               Dữ liệu an toàn trên Cloud
             </h3>
             <p className="text-xs text-[#7F9EB8] leading-relaxed">
-              Tự động lưu trữ trên Firebase Firestore, truy cập mọi lúc trên điện thoại và máy tính.
+              Tự động lưu trữ an toàn trên Firebase Firestore và đồng bộ tài khoản Google của bạn.
             </p>
           </div>
         </div>

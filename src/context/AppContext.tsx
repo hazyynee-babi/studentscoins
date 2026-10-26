@@ -1,21 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import {
-  collection,
-  doc,
-  setDoc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy,
-} from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { Transaction, Budget, ActiveTab } from '../types';
 import { INITIAL_TRANSACTIONS, INITIAL_BUDGET } from '../data/mockData';
 import { getMonthString } from '../utils/formatters';
+import { db, handleFirestoreError, OperationType, sanitizeForFirestore } from '../lib/firebase';
 import { useAuth } from './AuthContext';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 
-const STORAGE_KEY_TRANSACTIONS = 'students_coins_transactions_v1';
-const STORAGE_KEY_BUDGET = 'students_coins_budget_v1';
+const STORAGE_KEY_TRANSACTIONS = 'students_coins_transactions_v2';
+const STORAGE_KEY_BUDGET = 'students_coins_budget_v2';
 
 interface AppContextType {
   activeTab: ActiveTab;
@@ -99,7 +91,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, 3200);
   };
 
-  // Sync to localStorage as offline cache
+  // Sync to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
@@ -116,73 +108,67 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [budget]);
 
-  // Real-time Firestore synchronization when currentUser is authenticated
+  // Real-time Firestore sync when user is authenticated
   useEffect(() => {
     if (!currentUser) return;
 
-    const currentMonth = getMonthString();
     const txCollectionRef = collection(db, 'users', currentUser.uid, 'transactions');
     const txQuery = query(txCollectionRef, orderBy('date', 'desc'));
-    const txPath = `users/${currentUser.uid}/transactions`;
 
     const unsubscribeTx = onSnapshot(
       txQuery,
       (snapshot) => {
         if (!snapshot.empty) {
-          const cloudTxs: Transaction[] = snapshot.docs.map((docSnap) => {
+          const remoteTxList: Transaction[] = [];
+          snapshot.forEach((docSnap) => {
             const data = docSnap.data();
-            return {
+            remoteTxList.push({
               id: docSnap.id,
-              type: data.type,
-              amount: data.amount,
-              category: data.category,
-              date: data.date,
-              title: data.title,
-              note: data.note,
-            };
+              userId: data.userId || currentUser.uid,
+              type: data.type || 'expense',
+              amount: Number(data.amount) || 0,
+              category: data.category || 'other_expense',
+              date: data.date || '',
+              title: data.title || '',
+              note: data.note || '',
+            });
           });
-          setTransactions(cloudTxs);
-        } else {
-          // New account or empty cloud: migrate local transactions to Firestore
+          setTransactions(remoteTxList);
+        } else if (transactions.length > 0) {
+          // If Firestore is empty but user had local transactions, seed them to Firestore
           transactions.forEach(async (tx) => {
-            const docRef = doc(db, 'users', currentUser.uid, 'transactions', tx.id);
+            const txDoc = doc(db, 'users', currentUser.uid, 'transactions', tx.id);
             try {
-              await setDoc(docRef, {
-                ...tx,
-                userId: currentUser.uid,
-              });
+              await setDoc(txDoc, sanitizeForFirestore({ ...tx, userId: currentUser.uid }), { merge: true });
             } catch (err) {
-              handleFirestoreError(err, OperationType.WRITE, `users/${currentUser.uid}/transactions/${tx.id}`);
+              console.warn('Initial seed sync error:', err);
             }
           });
         }
       },
       (error) => {
-        handleFirestoreError(error, OperationType.GET, txPath);
+        handleFirestoreError(error, OperationType.LIST, `users/${currentUser.uid}/transactions`);
       }
     );
 
     // Sync budget
+    const currentMonth = getMonthString();
     const budgetDocRef = doc(db, 'users', currentUser.uid, 'budget', currentMonth);
-    const budgetPath = `users/${currentUser.uid}/budget/${currentMonth}`;
-
     const unsubscribeBudget = onSnapshot(
       budgetDocRef,
       (docSnap) => {
         if (docSnap.exists()) {
-          setBudget(docSnap.data() as Budget);
-        } else {
-          // Save local budget to cloud
-          setDoc(budgetDocRef, {
-            ...budget,
-            userId: currentUser.uid,
-          }).catch((err) => {
-            handleFirestoreError(err, OperationType.WRITE, budgetPath);
+          const data = docSnap.data();
+          setBudget({
+            month: data.month || currentMonth,
+            userId: data.userId || currentUser.uid,
+            totalBudget: Number(data.totalBudget) || 3000000,
+            categoryBudgets: data.categoryBudgets || {},
           });
         }
       },
       (error) => {
-        handleFirestoreError(error, OperationType.GET, budgetPath);
+        handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}/budget/${currentMonth}`);
       }
     );
 
@@ -225,19 +211,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const newTx: Transaction = {
       ...tx,
       id: newId,
+      userId: currentUser?.uid,
     };
 
+    // Optimistic local update
     setTransactions((prev) => [newTx, ...prev]);
 
+    // Save to Firestore if user logged in
     if (currentUser) {
-      const docPath = `users/${currentUser.uid}/transactions/${newId}`;
+      const txDocRef = doc(db, 'users', currentUser.uid, 'transactions', newId);
       try {
-        await setDoc(doc(db, 'users', currentUser.uid, 'transactions', newId), {
-          ...newTx,
-          userId: currentUser.uid,
-        });
+        await setDoc(txDocRef, sanitizeForFirestore({ ...newTx, userId: currentUser.uid }));
       } catch (err) {
-        handleFirestoreError(err, OperationType.WRITE, docPath);
+        handleFirestoreError(err, OperationType.CREATE, `users/${currentUser.uid}/transactions/${newId}`);
       }
     }
 
@@ -245,21 +231,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateTransaction = async (id: string, updatedData: Omit<Transaction, 'id'>) => {
-    const updatedTx: Transaction = { ...updatedData, id };
-
+    const updatedTx: Transaction = { ...updatedData, id, userId: currentUser?.uid };
     setTransactions((prev) =>
       prev.map((t) => (t.id === id ? updatedTx : t))
     );
 
     if (currentUser) {
-      const docPath = `users/${currentUser.uid}/transactions/${id}`;
+      const txDocRef = doc(db, 'users', currentUser.uid, 'transactions', id);
       try {
-        await setDoc(doc(db, 'users', currentUser.uid, 'transactions', id), {
-          ...updatedTx,
-          userId: currentUser.uid,
-        });
+        await setDoc(txDocRef, sanitizeForFirestore({ ...updatedTx, userId: currentUser.uid }), { merge: true });
       } catch (err) {
-        handleFirestoreError(err, OperationType.WRITE, docPath);
+        handleFirestoreError(err, OperationType.UPDATE, `users/${currentUser.uid}/transactions/${id}`);
       }
     }
 
@@ -270,11 +252,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setTransactions((prev) => prev.filter((t) => t.id !== id));
 
     if (currentUser) {
-      const docPath = `users/${currentUser.uid}/transactions/${id}`;
+      const txDocRef = doc(db, 'users', currentUser.uid, 'transactions', id);
       try {
-        await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', id));
+        await deleteDoc(txDocRef);
       } catch (err) {
-        handleFirestoreError(err, OperationType.DELETE, docPath);
+        handleFirestoreError(err, OperationType.DELETE, `users/${currentUser.uid}/transactions/${id}`);
       }
     }
 
@@ -282,17 +264,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateBudget = async (newBudget: Budget) => {
-    setBudget(newBudget);
+    const payload = { ...newBudget, userId: currentUser?.uid };
+    setBudget(payload);
 
     if (currentUser) {
-      const docPath = `users/${currentUser.uid}/budget/${newBudget.month}`;
+      const budgetDocRef = doc(db, 'users', currentUser.uid, 'budget', newBudget.month);
       try {
-        await setDoc(doc(db, 'users', currentUser.uid, 'budget', newBudget.month), {
-          ...newBudget,
-          userId: currentUser.uid,
-        });
+        await setDoc(budgetDocRef, sanitizeForFirestore(payload), { merge: true });
       } catch (err) {
-        handleFirestoreError(err, OperationType.WRITE, docPath);
+        handleFirestoreError(err, OperationType.WRITE, `users/${currentUser.uid}/budget/${newBudget.month}`);
       }
     }
 
@@ -305,39 +285,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     if (currentUser) {
       for (const tx of INITIAL_TRANSACTIONS) {
-        const docPath = `users/${currentUser.uid}/transactions/${tx.id}`;
-        try {
-          await setDoc(doc(db, 'users', currentUser.uid, 'transactions', tx.id), {
-            ...tx,
-            userId: currentUser.uid,
-          });
-        } catch (err) {
-          handleFirestoreError(err, OperationType.WRITE, docPath);
-        }
+        const txDoc = doc(db, 'users', currentUser.uid, 'transactions', tx.id);
+        await setDoc(txDoc, sanitizeForFirestore({ ...tx, userId: currentUser.uid }), { merge: true });
       }
+      const budgetDoc = doc(db, 'users', currentUser.uid, 'budget', INITIAL_BUDGET.month);
+      await setDoc(budgetDoc, sanitizeForFirestore({ ...INITIAL_BUDGET, userId: currentUser.uid }), { merge: true });
     }
 
     showToast('Đã khôi phục dữ liệu sinh viên mẫu!');
   };
 
   const clearAllData = async () => {
+    const clearedBudget = {
+      month: getMonthString(),
+      userId: currentUser?.uid,
+      totalBudget: 3000000,
+      categoryBudgets: {},
+    };
+    
+    // Delete Firestore transactions if logged in
     if (currentUser) {
       for (const tx of transactions) {
-        const docPath = `users/${currentUser.uid}/transactions/${tx.id}`;
         try {
           await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', tx.id));
-        } catch (err) {
-          handleFirestoreError(err, OperationType.DELETE, docPath);
+        } catch (e) {
+          console.warn('Delete transaction error:', e);
         }
       }
     }
 
     setTransactions([]);
-    setBudget({
-      month: getMonthString(),
-      totalBudget: 3000000,
-      categoryBudgets: {},
-    });
+    setBudget(clearedBudget);
     showToast('Đã làm trống toàn bộ dữ liệu');
   };
 

@@ -12,7 +12,6 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { useAuth } from '../../context/AuthContext';
 import { formatVND, getRemainingDaysInMonth, formatMonthDisplay, getMonthString } from '../../utils/formatters';
 import { PiggyBank3D } from '../illustrations/PiggyBank3D';
 import { Coin3D } from '../illustrations/Coin3D';
@@ -20,7 +19,6 @@ import { CategoryIcon } from '../common/CategoryIcon';
 import { getCategoryById } from '../../data/categories';
 
 export const DashboardView: React.FC = () => {
-  const { currentUser } = useAuth();
   const {
     currentBalance,
     monthlyIncome,
@@ -102,22 +100,18 @@ export const DashboardView: React.FC = () => {
                 </span>
               </div>
               <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#2C4258] mt-1">
-                {currentUser
-                  ? `Chào ${currentUser.displayName?.split(' ').pop() || 'bạn'}! 🐷`
-                  : 'Chào bạn sinh viên! 🐷'}
+                Chào bạn sinh viên! 🐷
               </h1>
               <p className="text-sm text-[#5B7894] mt-0.5 font-medium">
-                {currentUser
-                  ? 'Dữ liệu của bạn đang được đồng bộ hóa an toàn với Firebase Cloud ✨'
-                  : 'Cùng tích lũy từng đồng xu, quản lý chi tiêu thông minh cho tương lai!'}
+                Cùng tích lũy từng đồng xu, quản lý chi tiêu thông minh cho tương lai! ✨
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto">
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
             <button
               onClick={() => openTransactionModal()}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#52769A] hover:bg-[#436282] text-white text-sm font-semibold shadow-sm transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#52769A] hover:bg-[#436282] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all cursor-pointer"
             >
               <PlusCircle size={18} className="text-[#F4CB70]" />
               <span>Ghi chép chi tiêu</span>

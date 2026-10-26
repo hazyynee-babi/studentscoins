@@ -80,3 +80,18 @@ export const loginWithGoogle = async (): Promise<User> => {
 export const logout = async (): Promise<void> => {
   await signOut(auth);
 };
+
+export function sanitizeForFirestore<T extends Record<string, any>>(obj: T): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = sanitizeForFirestore(value);
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+  return result;
+}
+

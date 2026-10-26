@@ -28,6 +28,7 @@ export interface Category {
 
 export interface Transaction {
   id: string;
+  userId?: string;
   type: TransactionType;
   amount: number;
   category: CategoryId;
@@ -38,6 +39,7 @@ export interface Transaction {
 
 export interface Budget {
   month: string; // YYYY-MM
+  userId?: string;
   totalBudget: number;
   categoryBudgets: Partial<Record<CategoryId, number>>;
 }
