@@ -61,7 +61,7 @@ const MainContent: React.FC = () => {
       <Navbar />
 
       {/* Main functional views */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-20 md:pb-12 animate-fade-in">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-28 md:pb-32 animate-fade-in">
         {activeTab === 'dashboard' && <DashboardView />}
         {activeTab === 'transactions' && <TransactionsView />}
         {activeTab === 'budget' && <BudgetView />}
@@ -74,7 +74,7 @@ const MainContent: React.FC = () => {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-20 md:bottom-6 right-6 z-50 animate-bounce duration-300">
+        <div className="fixed bottom-20 md:bottom-24 right-4 sm:right-6 z-50 animate-bounce duration-300">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-[#2C4258] text-[#FFFDF8] shadow-2xl border border-[#A8DEFA]/40 text-xs font-bold">
             <Coin3D size="sm" symbol="✓" />
             <span>{toastMessage}</span>
@@ -83,7 +83,7 @@ const MainContent: React.FC = () => {
       )}
 
       {/* Cheerful Student Footer */}
-      <footer className="border-t border-[#A8DEFA]/30 bg-[#FFFDF8] py-6 text-center text-xs text-[#7F9EB8] hidden md:block">
+      <footer className="border-t border-[#A8DEFA]/30 bg-[#FFFDF8] py-6 pb-24 md:pb-24 text-center text-xs text-[#7F9EB8] hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-heading font-extrabold text-[#52769A]">STUDENTS COINS</span>

@@ -34,13 +34,11 @@ const NAV_ITEMS: NavItem[] = [
 export const Navbar: React.FC = () => {
   const { activeTab, setActiveTab, openTransactionModal, showToast } = useApp();
   const { currentUser, signOutUser } = useAuth();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showMobileAccountModal, setShowMobileAccountModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
 
   const handleSignOut = async () => {
     try {
-      setShowUserMenu(false);
-      setShowMobileAccountModal(false);
+      setShowAccountModal(false);
       await signOutUser();
       showToast('Đã đăng xuất tài khoản. Bạn có thể chọn tài khoản Google khác để đăng nhập.');
     } catch (error) {
@@ -51,8 +49,7 @@ export const Navbar: React.FC = () => {
 
   const handleSwitchAccount = async () => {
     try {
-      setShowUserMenu(false);
-      setShowMobileAccountModal(false);
+      setShowAccountModal(false);
       await signOutUser();
       showToast('Vui lòng chọn tài khoản Google mới để đăng nhập.');
     } catch (error) {
@@ -62,100 +59,65 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FFFDF8]/90 backdrop-blur-md border-b border-[#A8DEFA]/40 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo & Brand */}
-          <div
-            onClick={() => setActiveTab('dashboard')}
-            className="flex items-center gap-3 cursor-pointer group select-none"
-          >
-            <div className="relative transform transition-transform group-hover:scale-105 duration-200">
-              <PiggyBank3D size="sm" showCoin={true} animated={false} />
-              <div className="absolute -bottom-1 -right-1">
-                <Coin3D size="sm" symbol="₫" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-heading font-extrabold text-xl sm:text-2xl tracking-tight text-[#52769A]">
-                  STUDENTS
-                </span>
-                <span className="font-heading font-extrabold text-xl sm:text-2xl tracking-tight text-[#F4CB70] drop-shadow-xs">
-                  COINS
-                </span>
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F7C6D0]/50 text-[#733B49]">
-                  <Sparkles size={11} className="mr-0.5 text-[#F4CB70]" /> GenZ
-                </span>
-              </div>
-              <p className="text-[11px] font-medium text-[#7D9BB9] hidden sm:block">
-                Quản lý chi tiêu sinh viên
-              </p>
-            </div>
-          </div>
-
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1.5 bg-[#F0F8FD] p-1.5 rounded-2xl border border-[#A8DEFA]/30">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    isActive
-                      ? 'bg-[#FFFDF8] text-[#52769A] shadow-sm font-bold scale-[1.02]'
-                      : 'text-[#6B8BAA] hover:text-[#52769A] hover:bg-white/60'
-                  }`}
-                >
-                  <Icon
-                    size={17}
-                    className={isActive ? 'text-[#52769A]' : 'text-[#8AA6C3]'}
-                  />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Right Area: User Profile, Quick Add & Mobile Logout */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Quick Add Button */}
-            <button
-              onClick={() => openTransactionModal()}
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-[#52769A] text-white font-semibold text-xs sm:text-sm shadow-md hover:bg-[#436282] hover:shadow-lg transition-all duration-150 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+    <>
+      {/* Top Header: Clean, minimal brand banner with sync status and account info */}
+      <header className="sticky top-0 z-30 bg-[#FFFDF8]/90 backdrop-blur-md border-b border-[#A8DEFA]/40 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo & Brand */}
+            <div
+              onClick={() => setActiveTab('dashboard')}
+              className="flex items-center gap-2.5 cursor-pointer group select-none"
             >
-              <PlusCircle size={17} className="text-[#F4CB70]" />
-              <span className="hidden sm:inline">Thêm giao dịch</span>
-              <span className="sm:hidden">+ Thêm</span>
-            </button>
+              <div className="relative transform transition-transform group-hover:scale-105 duration-200">
+                <PiggyBank3D size="sm" showCoin={true} animated={false} />
+                <div className="absolute -bottom-1 -right-1">
+                  <Coin3D size="sm" symbol="₫" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-heading font-extrabold text-lg sm:text-xl tracking-tight text-[#52769A]">
+                    STUDENTS
+                  </span>
+                  <span className="font-heading font-extrabold text-lg sm:text-xl tracking-tight text-[#F4CB70] drop-shadow-xs">
+                    COINS
+                  </span>
+                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F7C6D0]/50 text-[#733B49]">
+                    <Sparkles size={10} className="mr-0.5 text-[#F4CB70]" /> GenZ
+                  </span>
+                </div>
+                <p className="text-[10px] font-medium text-[#7D9BB9] hidden sm:block">
+                  Quản lý chi tiêu sinh viên
+                </p>
+              </div>
+            </div>
 
-            {/* Mobile Direct Logout / Switch Account Button */}
-            {currentUser && (
-              <button
-                onClick={() => setShowMobileAccountModal(true)}
-                className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF0ED] text-[#E07A5F] hover:bg-[#FFE5E0] active:scale-95 border border-[#FAD2C8] text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                title="Đăng xuất hoặc chuyển tài khoản"
-              >
-                <LogOut size={14} />
-                <span className="text-[11px]">Đăng xuất</span>
-              </button>
-            )}
+            {/* Right: Cloud Sync Status & Account Actions */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Cloud Sync Status Indicator */}
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EAF8F0] border border-[#BDE7CC] text-[11px] font-medium text-[#218838]">
+                <span className="w-2 h-2 rounded-full bg-[#28A745] inline-block animate-pulse" />
+                <span>Đã đồng bộ Google Cloud</span>
+              </div>
 
-            {/* Authenticated User Menu (Desktop Dropdown & Mobile Avatar click) */}
-            {currentUser && (
-              <div className="relative">
+              {/* Direct Switch Account / Logout Button (Desktop) */}
+              {currentUser && (
                 <button
-                  onClick={() => {
-                    // On desktop toggle dropdown, on mobile open bottom modal
-                    if (window.innerWidth < 768) {
-                      setShowMobileAccountModal(true);
-                    } else {
-                      setShowUserMenu(!showUserMenu);
-                    }
-                  }}
-                  className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-2xl bg-[#F0F8FD] hover:bg-[#E2F0FA] border border-[#A8DEFA]/40 transition-all cursor-pointer group"
+                  onClick={() => setShowAccountModal(true)}
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFF0ED] text-[#E07A5F] hover:bg-[#FFE5E0] active:scale-95 border border-[#FAD2C8] text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                  title="Chuyển tài khoản Google hoặc Đăng xuất"
+                >
+                  <RefreshCw size={13} />
+                  <span>Đổi tài khoản</span>
+                </button>
+              )}
+
+              {/* User Avatar Button */}
+              {currentUser && (
+                <button
+                  onClick={() => setShowAccountModal(true)}
+                  className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-2xl bg-[#F0F8FD] hover:bg-[#E2F0FA] border border-[#A8DEFA]/40 transition-all cursor-pointer group"
                   title={currentUser.displayName || currentUser.email || 'Tài khoản'}
                 >
                   {currentUser.photoURL ? (
@@ -174,116 +136,198 @@ export const Navbar: React.FC = () => {
                     <p className="font-bold text-[#2C4258] truncate max-w-[110px]">
                       {currentUser.displayName || 'Sinh viên'}
                     </p>
-                    <p className="text-[10px] text-[#27AE60] font-medium flex items-center gap-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#27AE60] inline-block animate-pulse" />
-                      Đã đồng bộ
-                    </p>
                   </div>
                 </button>
-
-                {/* Desktop Dropdown Menu */}
-                {showUserMenu && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-30"
-                      onClick={() => setShowUserMenu(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-[#A8DEFA]/40 p-3 z-40 animate-fade-in text-xs space-y-1">
-                      <div className="px-3 py-2 border-b border-[#F0F4F8] mb-1">
-                        <p className="font-bold text-[#2C4258] truncate">
-                          {currentUser.displayName || 'Sinh viên'}
-                        </p>
-                        <p className="text-[#7F9EB8] text-[11px] truncate">
-                          {currentUser.email}
-                        </p>
-                        <p className="text-[10px] text-[#27AE60] font-medium flex items-center gap-1 mt-1">
-                          <CheckCircle2 size={12} />
-                          Đã đồng bộ Google Cloud
-                        </p>
-                      </div>
-
-                      {/* Switch Account */}
-                      <button
-                        onClick={handleSwitchAccount}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[#52769A] hover:bg-[#F0F8FD] font-semibold transition-colors cursor-pointer text-left"
-                      >
-                        <RefreshCw size={14} />
-                        <span>Chuyển tài khoản Google</span>
-                      </button>
-
-                      {/* Sign Out */}
-                      <button
-                        onClick={handleSignOut}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[#E07A5F] hover:bg-[#FFF0ED] font-semibold transition-colors cursor-pointer text-left"
-                      >
-                        <LogOut size={14} />
-                        <span>Đăng xuất</span>
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Bottom Navigation Bar (5 tabs including Logout / Account) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFDF8]/95 backdrop-blur-md border-t border-[#A8DEFA]/40 shadow-lg px-2 py-1.5 safe-area-pb">
-        <div className="grid grid-cols-5 gap-1">
-          {NAV_ITEMS.map((item) => {
+      {/* ======================================================== */}
+      {/* THANH CÔNG CỤ Ở DƯỚI (BOTTOM TOOLBAR) - DESKTOP & TABLET */}
+      {/* ======================================================== */}
+      <div className="hidden md:flex fixed bottom-5 left-1/2 -translate-x-1/2 z-40">
+        <nav className="flex items-center gap-1.5 bg-[#FFFDF8]/95 backdrop-blur-xl border border-[#A8DEFA]/60 shadow-2xl rounded-2xl px-3 py-2">
+          {/* Navigation Items: Tổng quan & Giao dịch */}
+          {NAV_ITEMS.slice(0, 2).map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id && !showMobileAccountModal;
+            const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setShowMobileAccountModal(false);
-                }}
-                className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[10px] font-semibold transition-all ${
+                onClick={() => setActiveTab(item.id)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                   isActive
-                    ? 'text-[#52769A] bg-[#EAF3FA] font-bold'
-                    : 'text-[#8AA6C3] hover:text-[#52769A]'
+                    ? 'bg-[#52769A] text-white shadow-sm scale-[1.02]'
+                    : 'text-[#6B8BAA] hover:text-[#52769A] hover:bg-[#F0F8FD]'
                 }`}
               >
                 <Icon
-                  size={18}
-                  className={`mb-0.5 ${isActive ? 'text-[#52769A]' : 'text-[#8AA6C3]'}`}
+                  size={16}
+                  className={isActive ? 'text-white' : 'text-[#8AA6C3]'}
                 />
-                <span className="truncate max-w-full">{item.label}</span>
+                <span>{item.label}</span>
               </button>
             );
           })}
 
-          {/* 5th Mobile Tab: Account & Logout */}
+          {/* Primary Action Button: + Thêm Giao Dịch */}
           <button
-            onClick={() => setShowMobileAccountModal(true)}
+            onClick={() => openTransactionModal()}
+            className="flex items-center gap-2 px-4 py-2 mx-1 rounded-xl bg-[#F4CB70] hover:bg-[#eec15b] active:scale-95 text-[#543D0A] font-extrabold text-xs shadow-md hover:shadow-lg transition-all duration-150 cursor-pointer"
+            title="Thêm giao dịch thu chi mới"
+          >
+            <PlusCircle size={17} className="text-[#543D0A]" />
+            <span>+ Thêm giao dịch</span>
+          </button>
+
+          {/* Navigation Items: Ngân sách & Báo cáo */}
+          {NAV_ITEMS.slice(2).map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
+                  isActive
+                    ? 'bg-[#52769A] text-white shadow-sm scale-[1.02]'
+                    : 'text-[#6B8BAA] hover:text-[#52769A] hover:bg-[#F0F8FD]'
+                }`}
+              >
+                <Icon
+                  size={16}
+                  className={isActive ? 'text-white' : 'text-[#8AA6C3]'}
+                />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+
+          {/* Divider */}
+          <div className="h-6 w-px bg-[#CBD5E1]/60 mx-1" />
+
+          {/* Direct Switch Account & Logout on Bottom Toolbar */}
+          <button
+            onClick={() => setShowAccountModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[#E07A5F] hover:bg-[#FFF0ED] text-xs font-bold transition-all cursor-pointer"
+            title="Tài khoản & Đăng xuất"
+          >
+            <LogOut size={15} />
+            <span>Đăng xuất</span>
+          </button>
+        </nav>
+      </div>
+
+      {/* ======================================================== */}
+      {/* THANH CÔNG CỤ Ở DƯỚI (BOTTOM TOOLBAR) - MOBILE & PHONES  */}
+      {/* ======================================================== */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFDF8]/95 backdrop-blur-md border-t border-[#A8DEFA]/40 shadow-xl px-1 py-1 safe-area-pb">
+        <div className="grid grid-cols-6 gap-0.5 items-center">
+          {/* Tab 1: Tổng quan */}
+          <button
+            onClick={() => {
+              setActiveTab('dashboard');
+              setShowAccountModal(false);
+            }}
+            className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[10px] font-semibold transition-all ${
+              activeTab === 'dashboard' && !showAccountModal
+                ? 'text-[#52769A] bg-[#EAF3FA] font-bold'
+                : 'text-[#8AA6C3] hover:text-[#52769A]'
+            }`}
+          >
+            <LayoutDashboard size={17} className={activeTab === 'dashboard' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
+            <span className="truncate max-w-full mt-0.5">Tổng quan</span>
+          </button>
+
+          {/* Tab 2: Giao dịch */}
+          <button
+            onClick={() => {
+              setActiveTab('transactions');
+              setShowAccountModal(false);
+            }}
+            className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[10px] font-semibold transition-all ${
+              activeTab === 'transactions' && !showAccountModal
+                ? 'text-[#52769A] bg-[#EAF3FA] font-bold'
+                : 'text-[#8AA6C3] hover:text-[#52769A]'
+            }`}
+          >
+            <Receipt size={17} className={activeTab === 'transactions' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
+            <span className="truncate max-w-full mt-0.5">Thu chi</span>
+          </button>
+
+          {/* Action: + Thêm (Center Highlighted) */}
+          <button
+            onClick={() => openTransactionModal()}
+            className="flex flex-col items-center justify-center py-1 px-0.5 rounded-xl text-[10px] font-bold text-[#543D0A] bg-[#F4CB70] hover:bg-[#eec15b] shadow-xs active:scale-95 transition-all"
+            title="Thêm giao dịch mới"
+          >
+            <PlusCircle size={18} className="text-[#543D0A]" />
+            <span className="truncate max-w-full mt-0.5">+ Thêm</span>
+          </button>
+
+          {/* Tab 4: Ngân sách */}
+          <button
+            onClick={() => {
+              setActiveTab('budget');
+              setShowAccountModal(false);
+            }}
+            className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[10px] font-semibold transition-all ${
+              activeTab === 'budget' && !showAccountModal
+                ? 'text-[#52769A] bg-[#EAF3FA] font-bold'
+                : 'text-[#8AA6C3] hover:text-[#52769A]'
+            }`}
+          >
+            <WalletCards size={17} className={activeTab === 'budget' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
+            <span className="truncate max-w-full mt-0.5">Ngân sách</span>
+          </button>
+
+          {/* Tab 5: Báo cáo */}
+          <button
+            onClick={() => {
+              setActiveTab('reports');
+              setShowAccountModal(false);
+            }}
+            className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[10px] font-semibold transition-all ${
+              activeTab === 'reports' && !showAccountModal
+                ? 'text-[#52769A] bg-[#EAF3FA] font-bold'
+                : 'text-[#8AA6C3] hover:text-[#52769A]'
+            }`}
+          >
+            <BarChart3 size={17} className={activeTab === 'reports' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
+            <span className="truncate max-w-full mt-0.5">Báo cáo</span>
+          </button>
+
+          {/* Tab 6: Đăng xuất & Tài khoản */}
+          <button
+            onClick={() => setShowAccountModal(true)}
             className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[10px] font-semibold transition-all cursor-pointer ${
-              showMobileAccountModal
+              showAccountModal
                 ? 'text-[#E07A5F] bg-[#FFF0ED] font-bold'
                 : 'text-[#E07A5F] hover:bg-[#FFF0ED]'
             }`}
+            title="Đăng xuất hoặc chuyển tài khoản"
           >
-            <LogOut size={18} className="mb-0.5 text-[#E07A5F]" />
-            <span className="truncate max-w-full font-bold">Đăng xuất</span>
+            <LogOut size={17} className="text-[#E07A5F]" />
+            <span className="truncate max-w-full font-bold mt-0.5">Đăng xuất</span>
           </button>
         </div>
       </div>
 
-      {/* Mobile Account & Logout Modal / Bottom Sheet */}
-      {showMobileAccountModal && (
-        <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center">
+      {/* Account & Logout Modal / Bottom Sheet */}
+      {showAccountModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-fade-in"
-            onClick={() => setShowMobileAccountModal(false)}
+            onClick={() => setShowAccountModal(false)}
           />
 
           {/* Modal / Sheet Container */}
-          <div className="relative w-full max-w-lg bg-white rounded-t-3xl shadow-2xl border-t border-[#A8DEFA]/40 p-5 z-10 animate-slide-up space-y-4">
-            {/* Sheet Handle */}
-            <div className="w-12 h-1.5 bg-[#E2E8F0] rounded-full mx-auto" />
+          <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#A8DEFA]/40 p-5 z-10 animate-slide-up space-y-4">
+            {/* Sheet Handle (for mobile) */}
+            <div className="sm:hidden w-12 h-1.5 bg-[#E2E8F0] rounded-full mx-auto" />
 
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-[#F0F4F8]">
@@ -301,7 +345,7 @@ export const Navbar: React.FC = () => {
                 </div>
               </div>
               <button
-                onClick={() => setShowMobileAccountModal(false)}
+                onClick={() => setShowAccountModal(false)}
                 className="p-1.5 rounded-full hover:bg-[#F0F4F8] text-[#8AA6C3] transition-colors cursor-pointer"
               >
                 <X size={18} />
@@ -331,14 +375,14 @@ export const Navbar: React.FC = () => {
                     {currentUser.email}
                   </p>
                   <div className="flex items-center gap-1 mt-1 text-[11px] font-medium text-[#27AE60]">
-                    <span className="w-2 h-2 rounded-full bg-[#27AE60] inline-block animate-pulse" />
+                    <CheckCircle2 size={13} className="text-[#27AE60]" />
                     <span>Đã đồng bộ đám mây Firebase</span>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Actions for Mobile */}
+            {/* Actions */}
             <div className="space-y-2 pt-1">
               {/* Switch Account */}
               <button
@@ -354,7 +398,7 @@ export const Navbar: React.FC = () => {
                       Chuyển sang tài khoản Google khác
                     </p>
                     <p className="text-[11px] text-[#7F9EB8]">
-                      Đăng xuất và đăng nhập tài khoản Google khác
+                      Đăng xuất và chọn tài khoản Google khác
                     </p>
                   </div>
                 </div>
@@ -374,7 +418,7 @@ export const Navbar: React.FC = () => {
                       Đăng xuất khỏi thiết bị
                     </p>
                     <p className="text-[11px] text-[#A86455]">
-                      Thoát phiên đăng nhập trên điện thoại này
+                      Thoát phiên đăng nhập hiện tại
                     </p>
                   </div>
                 </div>
@@ -383,7 +427,7 @@ export const Navbar: React.FC = () => {
 
             {/* Close Button */}
             <button
-              onClick={() => setShowMobileAccountModal(false)}
+              onClick={() => setShowAccountModal(false)}
               className="w-full py-2.5 rounded-xl border border-[#CBD5E1] text-[#64748B] text-xs font-semibold hover:bg-[#F8FAFC] transition-colors cursor-pointer"
             >
               Đóng
@@ -391,6 +435,6 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 };
