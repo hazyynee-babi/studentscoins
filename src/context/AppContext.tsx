@@ -54,27 +54,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
-  // Transactions state
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_TRANSACTIONS);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed reading transactions from localStorage', e);
-    }
-    return INITIAL_TRANSACTIONS;
-  });
+  // Transactions state: start strictly from empty [] (0 data) for new accounts
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // Budget state
-  const [budget, setBudget] = useState<Budget>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_BUDGET);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed reading budget from localStorage', e);
-    }
-    return INITIAL_BUDGET;
-  });
+  // Budget state: start strictly from 0 for new accounts
+  const [budget, setBudget] = useState<Budget>(() => ({
+    month: getMonthString(),
+    totalBudget: 0,
+    categoryBudgets: {},
+  }));
 
   // Modals state
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -91,26 +79,54 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, 3200);
   };
 
-  // Sync to localStorage
+  // Sync to user-scoped localStorage
   useEffect(() => {
+    if (!currentUser) return;
     try {
-      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
+      localStorage.setItem(`students_coins_tx_${currentUser.uid}`, JSON.stringify(transactions));
     } catch (e) {
       console.error('Failed saving transactions', e);
     }
-  }, [transactions]);
+  }, [transactions, currentUser]);
 
   useEffect(() => {
+    if (!currentUser) return;
     try {
-      localStorage.setItem(STORAGE_KEY_BUDGET, JSON.stringify(budget));
+      localStorage.setItem(`students_coins_bgt_${currentUser.uid}`, JSON.stringify(budget));
     } catch (e) {
       console.error('Failed saving budget', e);
     }
-  }, [budget]);
+  }, [budget, currentUser]);
 
   // Real-time Firestore sync when user is authenticated
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      // When not logged in, reset strictly to 0
+      setTransactions([]);
+      setBudget({ month: getMonthString(), totalBudget: 0, categoryBudgets: {} });
+      return;
+    }
+
+    const userTxKey = `students_coins_tx_${currentUser.uid}`;
+    const userBudgetKey = `students_coins_bgt_${currentUser.uid}`;
+
+    // Read user-specific cache if exists for instant UI rendering
+    try {
+      const cachedTx = localStorage.getItem(userTxKey);
+      if (cachedTx) {
+        setTransactions(JSON.parse(cachedTx));
+      } else {
+        setTransactions([]);
+      }
+      const cachedBudget = localStorage.getItem(userBudgetKey);
+      if (cachedBudget) {
+        setBudget(JSON.parse(cachedBudget));
+      } else {
+        setBudget({ month: getMonthString(), userId: currentUser.uid, totalBudget: 0, categoryBudgets: {} });
+      }
+    } catch (e) {
+      console.error('Error reading user cached data', e);
+    }
 
     const txCollectionRef = collection(db, 'users', currentUser.uid, 'transactions');
     const txQuery = query(txCollectionRef, orderBy('date', 'desc'));
@@ -134,16 +150,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             });
           });
           setTransactions(remoteTxList);
-        } else if (transactions.length > 0) {
-          // If Firestore is empty but user had local transactions, seed them to Firestore
-          transactions.forEach(async (tx) => {
-            const txDoc = doc(db, 'users', currentUser.uid, 'transactions', tx.id);
-            try {
-              await setDoc(txDoc, sanitizeForFirestore({ ...tx, userId: currentUser.uid }), { merge: true });
-            } catch (err) {
-              console.warn('Initial seed sync error:', err);
-            }
-          });
+          try {
+            localStorage.setItem(userTxKey, JSON.stringify(remoteTxList));
+          } catch (e) {}
+        } else {
+          // For new account or first login: start strictly from 0 (empty transactions list)
+          setTransactions([]);
+          try {
+            localStorage.setItem(userTxKey, JSON.stringify([]));
+          } catch (e) {}
         }
       },
       (error) => {
@@ -159,12 +174,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setBudget({
+          const remoteBudget: Budget = {
             month: data.month || currentMonth,
             userId: data.userId || currentUser.uid,
-            totalBudget: Number(data.totalBudget) || 3000000,
+            totalBudget: Number(data.totalBudget) || 0,
             categoryBudgets: data.categoryBudgets || {},
-          });
+          };
+          setBudget(remoteBudget);
+          try {
+            localStorage.setItem(userBudgetKey, JSON.stringify(remoteBudget));
+          } catch (e) {}
+        } else {
+          // New account: start budget strictly from 0
+          const emptyBudget: Budget = {
+            month: currentMonth,
+            userId: currentUser.uid,
+            totalBudget: 0,
+            categoryBudgets: {},
+          };
+          setBudget(emptyBudget);
+          try {
+            localStorage.setItem(userBudgetKey, JSON.stringify(emptyBudget));
+          } catch (e) {}
         }
       },
       (error) => {
@@ -299,7 +330,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const clearedBudget = {
       month: getMonthString(),
       userId: currentUser?.uid,
-      totalBudget: 3000000,
+      totalBudget: 0,
       categoryBudgets: {},
     };
     

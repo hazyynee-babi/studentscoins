@@ -36,12 +36,13 @@ export const DashboardView: React.FC = () => {
   );
 
   // Budget calculations
-  const totalBudget = budget.totalBudget || 1;
+  const rawTotalBudget = budget.totalBudget || 0;
+  const totalBudget = rawTotalBudget;
   const budgetSpent = monthlyExpense;
   const budgetRemaining = Math.max(0, totalBudget - budgetSpent);
-  const budgetPercentage = Math.min(100, Math.round((budgetSpent / totalBudget) * 100));
-  const isBudgetExceeded = budgetSpent > totalBudget;
-  const isNearLimit = budgetSpent >= totalBudget * 0.75 && !isBudgetExceeded;
+  const budgetPercentage = rawTotalBudget > 0 ? Math.min(100, Math.round((budgetSpent / rawTotalBudget) * 100)) : 0;
+  const isBudgetExceeded = rawTotalBudget > 0 && budgetSpent > rawTotalBudget;
+  const isNearLimit = rawTotalBudget > 0 && budgetSpent >= rawTotalBudget * 0.75 && !isBudgetExceeded;
 
   // Category breakdown for donut chart
   const expenseByCategory: Record<string, number> = {};
@@ -251,7 +252,11 @@ export const DashboardView: React.FC = () => {
               <h2 className="font-heading font-extrabold text-xl text-[#2C4258]">
                 Ngân sách sinh viên tháng {new Date().getMonth() + 1}
               </h2>
-              {isBudgetExceeded ? (
+              {totalBudget === 0 ? (
+                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#EAF3FA] text-[#52769A]">
+                  <Sparkles size={12} className="text-[#F4CB70]" /> Chưa cài hạn mức
+                </span>
+              ) : isBudgetExceeded ? (
                 <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#F3A5AA]/50 text-[#821922]">
                   <AlertTriangle size={12} /> Đã vượt ngân sách
                 </span>
@@ -314,7 +319,11 @@ export const DashboardView: React.FC = () => {
               Tỷ lệ đã dùng: <span className="font-extrabold text-[#2C4258]">{budgetPercentage}%</span>
             </span>
             <span className="font-bold">
-              {isBudgetExceeded ? (
+              {totalBudget === 0 ? (
+                <span className="text-[#52769A]">
+                  Chưa đặt hạn mức (0 ₫)
+                </span>
+              ) : isBudgetExceeded ? (
                 <span className="text-[#D32F2F]">
                   Vượt mức {formatVND(budgetSpent - totalBudget)}!
                 </span>

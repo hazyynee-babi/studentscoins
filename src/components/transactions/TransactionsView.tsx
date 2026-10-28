@@ -294,25 +294,31 @@ export const TransactionsView: React.FC = () => {
       {/* Transactions List */}
       {filteredTransactions.length === 0 ? (
         <div className="card-soft p-12 text-center flex flex-col items-center justify-center">
-          <PiggyBank3D size="md" showCoin={false} animated={false} />
+          <PiggyBank3D size="md" showCoin={true} animated={false} />
           <h3 className="font-heading font-extrabold text-lg text-[#2C4258] mt-4">
-            Không tìm thấy giao dịch nào!
+            {transactions.length === 0
+              ? 'Chào mừng bạn! Chưa có giao dịch nào'
+              : 'Không tìm thấy giao dịch nào!'}
           </h3>
           <p className="text-sm text-[#7F9EB8] max-w-md mt-1">
-            Không có kết quả phù hợp với tiêu chí lọc của bạn. Hãy thử thay đổi bộ lọc hoặc thêm một giao dịch mới.
+            {transactions.length === 0
+              ? 'Tài khoản của bạn đang bắt đầu từ 0. Hãy nhấn nút bên dưới để ghi chép khoản thu hoặc chi đầu tiên nhé!'
+              : 'Không có kết quả phù hợp với tiêu chí lọc của bạn. Hãy thử thay đổi bộ lọc hoặc thêm một giao dịch mới.'}
           </p>
           <div className="flex items-center gap-3 mt-5">
-            <button
-              onClick={clearFilters}
-              className="px-4 py-2 rounded-xl border border-[#52769A]/30 text-xs font-bold text-[#52769A]"
-            >
-              Xóa bộ lọc
-            </button>
+            {transactions.length > 0 && (
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 rounded-xl border border-[#52769A]/30 text-xs font-bold text-[#52769A] hover:bg-[#F0F8FD] cursor-pointer"
+              >
+                Xóa bộ lọc
+              </button>
+            )}
             <button
               onClick={() => openTransactionModal()}
-              className="px-4 py-2 rounded-xl bg-[#52769A] text-white text-xs font-bold"
+              className="px-4 py-2 rounded-xl bg-[#52769A] hover:bg-[#436282] text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
             >
-              Thêm giao dịch ngay
+              + Thêm giao dịch ngay
             </button>
           </div>
         </div>

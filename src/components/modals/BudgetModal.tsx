@@ -22,10 +22,11 @@ export const BudgetModal: React.FC = () => {
 
   useEffect(() => {
     if (isBudgetModalOpen) {
-      setTotalBudget(budget.totalBudget.toString());
+      setTotalBudget(budget.totalBudget > 0 ? budget.totalBudget.toString() : '');
       const catMap: Record<string, string> = {};
       expenseCategories.forEach((cat) => {
-        catMap[cat.id] = (budget.categoryBudgets[cat.id as CategoryId] || 0).toString();
+        const val = budget.categoryBudgets[cat.id as CategoryId] || 0;
+        catMap[cat.id] = val > 0 ? val.toString() : '';
       });
       setCategoryBudgets(catMap);
       setError(null);

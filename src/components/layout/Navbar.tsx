@@ -101,15 +101,15 @@ export const Navbar: React.FC = () => {
                 <span>Đã đồng bộ Google Cloud</span>
               </div>
 
-              {/* Direct Switch Account / Logout Button (Desktop) */}
+              {/* Direct Switch Account Button in Header */}
               {currentUser && (
                 <button
                   onClick={() => setShowAccountModal(true)}
-                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFF0ED] text-[#E07A5F] hover:bg-[#FFE5E0] active:scale-95 border border-[#FAD2C8] text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                  title="Chuyển tài khoản Google hoặc Đăng xuất"
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#FFF0ED] text-[#E07A5F] hover:bg-[#FFE5E0] active:scale-95 border border-[#FAD2C8] text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                  title="Đổi tài khoản Google"
                 >
                   <RefreshCw size={13} />
-                  <span>Đổi tài khoản</span>
+                  <span className="hidden sm:inline">Đổi tài khoản</span>
                 </button>
               )}
 
@@ -204,27 +204,14 @@ export const Navbar: React.FC = () => {
               </button>
             );
           })}
-
-          {/* Divider */}
-          <div className="h-6 w-px bg-[#CBD5E1]/60 mx-1" />
-
-          {/* Direct Switch Account & Logout on Bottom Toolbar */}
-          <button
-            onClick={() => setShowAccountModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[#E07A5F] hover:bg-[#FFF0ED] text-xs font-bold transition-all cursor-pointer"
-            title="Tài khoản & Đăng xuất"
-          >
-            <LogOut size={15} />
-            <span>Đăng xuất</span>
-          </button>
         </nav>
       </div>
 
       {/* ======================================================== */}
       {/* THANH CÔNG CỤ Ở DƯỚI (BOTTOM TOOLBAR) - MOBILE & PHONES  */}
       {/* ======================================================== */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFDF8]/95 backdrop-blur-md border-t border-[#A8DEFA]/40 shadow-xl px-1 py-1 safe-area-pb">
-        <div className="grid grid-cols-6 gap-0.5 items-center">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFDF8]/95 backdrop-blur-md border-t border-[#A8DEFA]/40 shadow-xl px-1.5 py-1 safe-area-pb">
+        <div className="grid grid-cols-5 gap-1 items-center">
           {/* Tab 1: Tổng quan */}
           <button
             onClick={() => {
@@ -237,7 +224,7 @@ export const Navbar: React.FC = () => {
                 : 'text-[#8AA6C3] hover:text-[#52769A]'
             }`}
           >
-            <LayoutDashboard size={17} className={activeTab === 'dashboard' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
+            <LayoutDashboard size={18} className={activeTab === 'dashboard' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
             <span className="truncate max-w-full mt-0.5">Tổng quan</span>
           </button>
 
@@ -253,21 +240,21 @@ export const Navbar: React.FC = () => {
                 : 'text-[#8AA6C3] hover:text-[#52769A]'
             }`}
           >
-            <Receipt size={17} className={activeTab === 'transactions' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
+            <Receipt size={18} className={activeTab === 'transactions' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
             <span className="truncate max-w-full mt-0.5">Thu chi</span>
           </button>
 
           {/* Action: + Thêm (Center Highlighted) */}
           <button
             onClick={() => openTransactionModal()}
-            className="flex flex-col items-center justify-center py-1 px-0.5 rounded-xl text-[10px] font-bold text-[#543D0A] bg-[#F4CB70] hover:bg-[#eec15b] shadow-xs active:scale-95 transition-all"
+            className="flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[10px] font-bold text-[#543D0A] bg-[#F4CB70] hover:bg-[#eec15b] shadow-xs active:scale-95 transition-all"
             title="Thêm giao dịch mới"
           >
-            <PlusCircle size={18} className="text-[#543D0A]" />
+            <PlusCircle size={19} className="text-[#543D0A]" />
             <span className="truncate max-w-full mt-0.5">+ Thêm</span>
           </button>
 
-          {/* Tab 4: Ngân sách */}
+          {/* Tab 3: Ngân sách */}
           <button
             onClick={() => {
               setActiveTab('budget');
@@ -279,11 +266,11 @@ export const Navbar: React.FC = () => {
                 : 'text-[#8AA6C3] hover:text-[#52769A]'
             }`}
           >
-            <WalletCards size={17} className={activeTab === 'budget' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
+            <WalletCards size={18} className={activeTab === 'budget' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
             <span className="truncate max-w-full mt-0.5">Ngân sách</span>
           </button>
 
-          {/* Tab 5: Báo cáo */}
+          {/* Tab 4: Báo cáo */}
           <button
             onClick={() => {
               setActiveTab('reports');
@@ -295,22 +282,8 @@ export const Navbar: React.FC = () => {
                 : 'text-[#8AA6C3] hover:text-[#52769A]'
             }`}
           >
-            <BarChart3 size={17} className={activeTab === 'reports' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
+            <BarChart3 size={18} className={activeTab === 'reports' && !showAccountModal ? 'text-[#52769A]' : 'text-[#8AA6C3]'} />
             <span className="truncate max-w-full mt-0.5">Báo cáo</span>
-          </button>
-
-          {/* Tab 6: Đăng xuất & Tài khoản */}
-          <button
-            onClick={() => setShowAccountModal(true)}
-            className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[10px] font-semibold transition-all cursor-pointer ${
-              showAccountModal
-                ? 'text-[#E07A5F] bg-[#FFF0ED] font-bold'
-                : 'text-[#E07A5F] hover:bg-[#FFF0ED]'
-            }`}
-            title="Đăng xuất hoặc chuyển tài khoản"
-          >
-            <LogOut size={17} className="text-[#E07A5F]" />
-            <span className="truncate max-w-full font-bold mt-0.5">Đăng xuất</span>
           </button>
         </div>
       </div>
@@ -398,7 +371,7 @@ export const Navbar: React.FC = () => {
                       Chuyển sang tài khoản Google khác
                     </p>
                     <p className="text-[11px] text-[#7F9EB8]">
-                      Đăng xuất và chọn tài khoản Google khác
+                      Đổi sang tài khoản Google khác
                     </p>
                   </div>
                 </div>

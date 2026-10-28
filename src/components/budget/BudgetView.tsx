@@ -30,13 +30,14 @@ export const BudgetView: React.FC = () => {
   );
 
   // Overall calculations
-  const totalBudget = budget.totalBudget || 1;
+  const rawTotalBudget = budget.totalBudget || 0;
+  const totalBudget = rawTotalBudget;
   const spentOverall = monthlyExpense;
   const remainingOverall = Math.max(0, totalBudget - spentOverall);
-  const percentOverall = Math.round((spentOverall / totalBudget) * 100);
+  const percentOverall = rawTotalBudget > 0 ? Math.round((spentOverall / rawTotalBudget) * 100) : 0;
 
-  const isOverBudget = spentOverall > totalBudget;
-  const isNearLimit = spentOverall >= totalBudget * 0.75 && !isOverBudget;
+  const isOverBudget = rawTotalBudget > 0 && spentOverall > rawTotalBudget;
+  const isNearLimit = rawTotalBudget > 0 && spentOverall >= rawTotalBudget * 0.75 && !isOverBudget;
 
   const expenseCategories = CATEGORIES.filter((c) => c.type === 'expense');
 
@@ -76,7 +77,11 @@ export const BudgetView: React.FC = () => {
               <span className="text-xs font-bold uppercase tracking-wider text-[#52769A] bg-[#EAF3FA] px-3 py-1 rounded-full">
                 Tổng ngân sách tháng {new Date().getMonth() + 1}
               </span>
-              {isOverBudget ? (
+              {rawTotalBudget === 0 ? (
+                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#EAF3FA] text-[#52769A]">
+                  <Sparkles size={13} className="text-[#F4CB70]" /> Chưa cài hạn mức
+                </span>
+              ) : isOverBudget ? (
                 <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#F3A5AA] text-[#610E16]">
                   <AlertTriangle size={13} /> Vượt hạn mức
                 </span>
